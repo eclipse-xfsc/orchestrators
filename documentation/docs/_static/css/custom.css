@@ -1,0 +1,5 @@
+/* Hide copyright in the footer */
+div[role=contentinfo] {
+	visibility: hidden;
+	position: relative;
+}

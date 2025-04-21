@@ -1,0 +1,69 @@
+{
+  "@context": {
+    "gax-participant": "http://w3id.org/gaia-x/participant#",
+    "gax-service": "http://w3id.org/gaia-x/service#",
+    "dct": "http://purl.org/dc/terms/",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "gax-validation": "http://w3id.org/gaia-x/validation#",
+    "gax-node": "http://w3id.org/gaia-x/node#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "gax-resource": "http://w3id.org/gaia-x/resource#",
+    "gax-core": "http://w3id.org/gaia-x/core#"
+  },
+  "@id": "ServiceOffering-dxhrm3k6tcizt4m9kx6e4d",
+  "@type": "gax-service:ServiceOffering",
+  "gax-service:hasServiceTitle": {
+    "@value": "nginx-openstack",
+    "@type": "xsd:string"
+  },
+  "dct:description": {
+    "@value": "A example with OpenStack VM and nginx",
+    "@type": "xsd:string"
+  },
+  "dcat:keyword": [
+    "nginx",
+    "OpenStack",
+    "VM",
+    "IaC",
+    "TOSCA",
+    "Terraform"
+  ],
+  "gax-service:maintainedBy": [
+    "XLAB",
+    "OpenStack"
+  ],
+  "gax-service:hasProvisionType": {
+    "@value": "true",
+    "@type": "xsd:boolean"
+  },
+  "gax-service:hostedOn": {
+    "@id": "OpenStack",
+    "@type": "gax-participant:Provider"
+  },
+  "gax-service:infrastructureAsCode": [
+    {
+      "@type": "iac:tosca",
+      "iac:url": {
+        "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56959554/download",
+        "@type": "xsd:anyURI"
+      },
+      "iac:inputs": {
+        "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56959563/download",
+        "@type": "xsd:anyURI"
+      }
+    },
+    {
+      "@type": "iac:terraform",
+      "iac:url": {
+        "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56959529/download",
+        "@type": "xsd:anyURI"
+      },
+      "iac:inputs": {
+        "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56959572/download",
+        "@type": "xsd:anyURI"
+      }
+    }
+  ]
+}

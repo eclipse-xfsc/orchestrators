@@ -1,0 +1,222 @@
+# Values for Traefik
+# helm.sh/chart: traefik-20.6.0
+image:
+  name: traefik
+  tag: ""
+  pullPolicy: IfNotPresent
+
+deployment:
+  enabled: true
+  kind: Deployment
+  replicas: 1
+  terminationGracePeriodSeconds: 60
+  minReadySeconds: 0
+  annotations: {}
+  labels: {}
+  podAnnotations: {}
+  podLabels: {}
+  additionalContainers: []
+  additionalVolumes: []
+  
+  initContainers:
+    - name: volume-permissions
+      image: public.ecr.aws/docker/library/busybox:1.35
+      imagePullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - touch /letsencrypt/acme.json && chmod -Rv 600 /letsencrypt/* && chown 65532:65532 /letsencrypt/acme.json
+      volumeMounts:
+        - mountPath: /letsencrypt
+          name: certs
+
+  shareProcessNamespace: false
+  imagePullSecrets: []
+
+podDisruptionBudget:
+  enabled: false
+
+ingressClass:
+  enabled: false
+  isDefaultClass: false
+  fallbackApiVersion: ""
+
+pilot:
+  enabled: false
+  token: ""
+
+experimental:
+  http3:
+    enabled: false
+  plugins:
+    enabled: false
+  kubernetesGateway:
+    enabled: false
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    annotations: {}
+    labels: {}
+
+rollingUpdate:
+  maxUnavailable: 1
+  maxSurge: 1
+
+readinessProbe:
+  failureThreshold: 1
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 2
+
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 2
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+    allowExternalNameServices: false
+    allowEmptyServices: false
+    namespaces: []
+
+  kubernetesIngress:
+    enabled: true
+    allowExternalNameServices: false
+    allowEmptyServices: false
+    namespaces: []
+    publishedService:
+      enabled: false
+
+volumes:
+  - name: certs
+    persistentVolumeClaim:
+      claimName: traefik
+
+additionalVolumeMounts:
+  - mountPath: /letsencrypt
+    name: certs
+
+logs:
+  general:
+    level: DEBUG
+  access:
+    enabled: false
+    filters: {}
+    fields:
+      general:
+        defaultmode: keep
+        names: {}
+      headers:
+        defaultmode: drop
+        names: {}
+metrics:
+  prometheus:
+    entryPoint: metrics
+
+tracing: {}
+
+globalArguments:
+  - "--global.checknewversion"
+  - "--global.sendanonymoususage"
+
+additionalArguments: []
+
+env: []
+envFrom: []
+
+ports:
+  traefik:
+    port: 9000
+    expose: false
+    exposedPort: 9000
+    protocol: TCP
+  web:
+    port: 8000
+    expose: true
+    exposedPort: 80
+    protocol: TCP
+  websecure:
+    port: 8443
+    expose: true
+    exposedPort: 443
+    protocol: TCP
+    tls:
+      enabled: true
+      options: ""
+      certResolver: letsencrypt
+      domains:
+        - main: yourdomain.example.com
+  metrics:
+    port: 9100
+    expose: false
+    exposedPort: 9100
+    protocol: TCP
+
+tlsOptions: {}
+
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations: {}
+  annotationsTCP: {}
+  annotationsUDP: {}
+  labels: {}
+  spec: {}
+  loadBalancerSourceRanges: []
+  externalIPs: []
+
+autoscaling:
+  enabled: false
+
+persistence:
+  enabled: true
+  name: certs
+  accessMode: ReadWriteOnce
+  size: 128Mi
+  path: /letsencrypt
+  storageClass: default
+  annotations: {}
+
+certResolvers:
+  letsencrypt:
+    email: admin@example.com
+    storage: /letsencrypt/acme.json
+    httpChallenge:
+      entryPoint: web
+
+hostNetwork: false
+
+rbac:
+  enabled: true
+  namespaced: false
+
+podSecurityPolicy:
+  enabled: false
+
+serviceAccount:
+  name: ""
+
+serviceAccountAnnotations: {}
+resources: {}
+affinity: {}
+nodeSelector: {}
+tolerations: []
+priorityClassName: ""
+
+securityContext:
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+podSecurityContext:
+  fsGroup: 65532
+

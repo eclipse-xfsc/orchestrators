@@ -1,0 +1,38 @@
+variables:
+  PACKAGE_FOLDER: "examples"
+
+stages:
+  - package
+  - upload
+
+package:
+  stage: package
+  image: ${CI_REGISTRY_IMAGE}/library/bash:5.2.2-alpine3.15
+  script:
+    - apk update && apk add zip
+    - chmod +x package.sh
+    - bash package.sh "$PACKAGE_FOLDER"
+  artifacts:
+    name: packaged-examples
+    paths:
+      - "$PACKAGE_FOLDER"
+    expire_in: 1 month
+
+upload:
+  stage: upload
+  dependencies:
+    - package
+  image: ${CI_REGISTRY_IMAGE}/library/bash:5.2.2-alpine3.15
+  variables:
+    CURL_URL_PREFIX: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+    CURL_HEADER: "JOB-TOKEN: $CI_JOB_TOKEN"
+  script:
+    - apk update && apk add curl
+    - if [ -n "$CI_COMMIT_TAG" ]; then PACKAGE_VERSION="$CI_COMMIT_TAG"; else PACKAGE_VERSION="latest"; fi
+    - mv "$PACKAGE_FOLDER" "$PACKAGE_VERSION"
+    - mkdir -p -m 0755 "$PACKAGE_FOLDER"
+    - mv "$PACKAGE_VERSION" "$PACKAGE_FOLDER"
+    - find "${PACKAGE_FOLDER}/${PACKAGE_VERSION}" -type f -exec echo {} \; -exec curl --header "${CURL_HEADER}" --upload-file {} "${CURL_URL_PREFIX}/{}" \;
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG

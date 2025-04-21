@@ -1,0 +1,560 @@
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    IaCType:
+      description: Enum that can distinct between different types of IaC (deployment
+        instructions)
+      enum:
+      - tosca
+      - terraform
+      title: IaCType
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+info:
+  description: Participant Provider Role API is used to obtain deployment instructions
+    from Gaia-X Self-Descriptions
+  title: PPR API
+  version: 0.1.3
+openapi: 3.0.2
+paths:
+  /catalogues:
+    get:
+      description: 'Retrieve (and filter) catalogues of Self-Descriptions (GET method)
+
+        :param keyword: Substring for filtering within catalogue name or description
+
+        :param uuid: Unique id for filtering by catalogue uuid
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_catalogues_get
+      parameters:
+      - in: query
+        name: keyword
+        required: false
+        schema:
+          title: Keyword
+          type: string
+      - in: query
+        name: uuid
+        required: false
+        schema:
+          title: Uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Catalogues Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Retrieve (and filter) catalogues of Self-Descriptions
+  /catalogues/{uuid}/self_descriptions:
+    get:
+      description: 'Retrieve (and filter) Self-Descriptions in the catalogue (GET
+        method)
+
+        :param uuid: Unique id of catalogue
+
+        :param keyword: Substring for filtering within Self-Description name or description
+
+        :param sha256: Unique id for filtering by Self-Description sha256 hash
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_uuid_self_descriptions_catalogues__uuid__self_descriptions_get
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          title: Uuid
+          type: string
+      - in: query
+        name: keyword
+        required: false
+        schema:
+          title: Keyword
+          type: string
+      - in: query
+        name: sha256
+        required: false
+        schema:
+          title: Sha256
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Uuid Self Descriptions Catalogues  Uuid  Self
+                  Descriptions Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Retrieve (and filter) Self-Descriptions in the catalogue
+  /catalogues/{uuid}/self_descriptions/{sha256}/iac:
+    get:
+      description: 'Get IaC (package and inputs) that implements Self-Description
+        from the catalogue (GET method)
+
+        :param uuid: Unique id of catalogue
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_uuid_self_descriptions_sha256_iac_catalogues__uuid__self_descriptions__sha256__iac_get
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          title: Uuid
+          type: string
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: false
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Uuid Self Descriptions Sha256 Iac
+                  Catalogues  Uuid  Self Descriptions  Sha256  Iac Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get IaC (package and inputs) that implements Self-Description from
+        the catalogue
+  /catalogues/{uuid}/self_descriptions/{sha256}/iac/inputs:
+    get:
+      description: 'Download IaC inputs for IaC package that implements Self-Description
+        from the catalogue (GET method)
+
+        :param uuid: Unique id of catalogue
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_uuid_self_descriptions_sha256_iac_inputs_catalogues__uuid__self_descriptions__sha256__iac_inputs_get
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          title: Uuid
+          type: string
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: true
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Uuid Self Descriptions Sha256 Iac
+                  Inputs Catalogues  Uuid  Self Descriptions  Sha256  Iac Inputs Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Download IaC inputs for IaC package that implements Self-Description
+        from the catalogue
+  /catalogues/{uuid}/self_descriptions/{sha256}/iac/url:
+    get:
+      description: 'Download IaC package that implements Self-Description from the
+        catalogue (GET method)
+
+        :param uuid: Unique id of catalogue
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_uuid_self_descriptions_sha256_iac_url_catalogues__uuid__self_descriptions__sha256__iac_url_get
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          title: Uuid
+          type: string
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: true
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Uuid Self Descriptions Sha256 Iac
+                  Url Catalogues  Uuid  Self Descriptions  Sha256  Iac Url Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Download IaC package that implements Self-Description from the catalogue
+  /catalogues/{uuid}/self_descriptions/{sha256}/json_ld:
+    get:
+      description: 'Get Self-Description in JSON-LD format from the catalogue (GET
+        method)
+
+        :param uuid: Unique id of catalogue
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_catalogues_uuid_self_descriptions_sha256_jdon_ld_catalogues__uuid__self_descriptions__sha256__json_ld_get
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          title: Uuid
+          type: string
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Catalogues Uuid Self Descriptions Sha256 Jdon
+                  Ld Catalogues  Uuid  Self Descriptions  Sha256  Json Ld Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get Self-Description in JSON-LD format from the catalogue
+  /self_descriptions:
+    get:
+      description: 'Retrieve (and filter) Self-Descriptions from all catalogues (GET
+        method)
+
+        :param keyword: substring for filtering within Self-Description name or description
+
+        :param sha256: Unique id for filtering by Self-Description sha256 hash
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_self_descriptions_self_descriptions_get
+      parameters:
+      - in: query
+        name: keyword
+        required: false
+        schema:
+          title: Keyword
+          type: string
+      - in: query
+        name: sha256
+        required: false
+        schema:
+          title: Sha256
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Self Descriptions Self Descriptions Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Retrieve (and filter) Self-Descriptions from all catalogues
+  /self_descriptions/{sha256}/iac:
+    get:
+      description: 'Get IaC (package and inputs) that implements Self-Description
+        from the catalogue (GET method)
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_self_descriptions_sha256_iac_self_descriptions__sha256__iac_get
+      parameters:
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: false
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Self Descriptions Sha256 Iac Self Descriptions  Sha256  Iac
+                  Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get IaC (package and inputs) that implements Self-Description from
+        the catalogue
+  /self_descriptions/{sha256}/iac/inputs:
+    get:
+      description: 'Download IaC inputs for IaC package that implements Self-Description
+        from the catalogue (GET method)
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_self_descriptions_sha256_iac_inputs_self_descriptions__sha256__iac_inputs_get
+      parameters:
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: true
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Self Descriptions Sha256 Iac Inputs Self Descriptions  Sha256  Iac
+                  Inputs Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Download IaC inputs for IaC package that implements Self-Description
+        from the catalogue
+  /self_descriptions/{sha256}/iac/url:
+    get:
+      description: 'Download IaC package that implements Self-Description from the
+        catalogue (GET method)
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :param iac_type: Type of IaC (e.g., TOSCA, Terraform)
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_self_descriptions_sha256_iac_url_self_descriptions__sha256__iac_url_get
+      parameters:
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      - in: query
+        name: iac_type
+        required: true
+        schema:
+          $ref: '#/components/schemas/IaCType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Self Descriptions Sha256 Iac Url Self Descriptions  Sha256  Iac
+                  Url Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Download IaC package that implements Self-Description from the catalogue
+  /self_descriptions/{sha256}/json_ld:
+    get:
+      description: 'Get Self-Description in JSON-LD format from the catalogue (GET
+        method)
+
+        :param sha256: Unique sha256 hash for Self-Description
+
+        :return: JSONResponse object (with status code 200 or 400)'
+      operationId: get_self_descriptions_sha256_jdon_ld_self_descriptions__sha256__json_ld_get
+      parameters:
+      - in: path
+        name: sha256
+        required: true
+        schema:
+          title: Sha256
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                title: Response 400 Get Self Descriptions Sha256 Jdon Ld Self Descriptions  Sha256  Json
+                  Ld Get
+                type: string
+          description: Bad Request
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Get Self-Description in JSON-LD format from the catalogue

@@ -1,0 +1,108 @@
+# Functional Requirement LE-TOSCA-2
+# =================================
+
+
+# Description
+# -----------
+# The LCM Engine MAY support the deployment of GX Services with orchestration
+# instructions that follow other template formats that TOSCA.
+
+
+# Acceptance Criteria
+# -------------------
+# Other template than TOSCA can be used for the deployment.
+
+
+# Acceptance Method
+# -----------------
+# A user deploys a GX service through LCM Engine by using non-TOSCA templates. 
+
+
+# Acceptance Test Outline
+# -----------------------
+# LE-TOSCA-2-01: Create workspace LE-TOSCA-2
+# LE-TOSCA-2-02: Create secrets for Nginx Web Page @ IONOS Terraform LCM Service
+# LE-TOSCA-2-03: Associate the secrets with workspace LE-TOSCA-2
+# LE-TOSCA-2-04: Create Terraform LCM Service project: Nginx Web Page @ IONOS
+# LE-TOSCA-2-05: Deploy Nginx Web Page @ IONOS using Terraform LCM Service
+# LE-TOSCA-2-05a: Prepare working directory
+# LE-TOSCA-2-05b: Execute the actions from a plan.
+# LE-TOSCA-2-06: Destroy Nginx Web Page @ IONOS using Terraform LCM Service
+# LE-TOSCA-2-07: Delete Terraform LCM Service (used for Nginx Web Page @ IONOS)
+# LE-TOSCA-2-08: Remove secret Terraform IONOS credentials from workspace LE-TOSCA-2
+# LE-TOSCA-2-09: Delete secret Terraform IONOS credentials
+# LE-TOSCA-2-10: Delete workspace LE-TOSCA-2
+
+# Acceptance Test
+# ---------------
+
+### LE-TOSCA-2-01: Create workspace LE-TOSCA-2
+POST {{lcm_host}}/workspace
+
+{
+    "name": "LE-TOSCA-2"
+}
+
+# Note: use the returned workspace ID in the following requests (assume ID 1)
+
+
+### LE-TOSCA-2-02: Create secrets for Nginx Web Page @ IONOS Terraform LCM Service
+POST {{lcm_host}}/secret
+
+{
+    "name": "Terraform IONOS credentials",
+    "file": {
+        "path": "/terraform-api/cred.tf",
+        "contents": "cHJvdmlkZXIgImlvbm9zY2xvdWQiIHsKICB1c2VybmFtZSAgICAgICAgICA9ICJub25hbWVAaW9ub3MuY29tIgogIHBhc3N3b3JkICAgICAgICAgID0gImszM3BtMzUzY3IzdCEiCn0K"
+    }
+}
+
+# Note: use the returned secret ID in the following request (assume ID 1)
+
+
+### LE-TOSCA-2-03: Associate the secrets with workspace LE-TOSCA-2
+PUT {{lcm_host}}/workspace/1/secret/1
+
+
+### LE-TOSCA-2-04: Create Terraform LCM Service project: Nginx Web Page @ IONOS
+POST {{lcm_host}}/workspace/1/project
+
+{
+    "name": "Nginx Web Page @ IONOS",
+    "kind": "si.xlab.lcm-service.terraform",
+    "csar": "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"
+}
+
+
+# Note: use the returned project ID in the following requests (assume ID 1)
+
+
+### LE-TOSCA-2-05: Deploy Nginx Web Page @ IONOS using Terraform LCM Service
+
+### LE-TOSCA-2-05a: Prepare working directory
+POST {{lcm_host}}/workspace/1/project/1/init
+
+
+### LE-TOSCA-2-05b: Execute the actions from a plan.
+# If the plan does not exist, it automatically creates one first.
+POST {{lcm_host}}/workspace/1/project/1/apply
+
+
+### LE-TOSCA-2-06: Destroy Nginx Web Page @ IONOS using Terraform LCM Service
+POST {{lcm_host}}/workspace/1/project/2/destroy
+
+
+### LE-TOSCA-2-07: Delete Terraform LCM Service (used for Nginx Web Page @ IONOS)
+DELETE {{lcm_host}}/workspace/1/project/2
+
+
+### LE-TOSCA-2-08: Remove secret Terraform IONOS credentials from workspace LE-TOSCA-2
+DELETE {{lcm_host}}/workspace/1/secret/1
+
+
+### LE-TOSCA-2-09: Delete secret Terraform IONOS credentials
+DELETE {{lcm_host}}/secret/1
+
+
+### LE-TOSCA-2-10: Delete workspace LE-TOSCA-2
+DELETE {{lcm_host}}/workspace/1

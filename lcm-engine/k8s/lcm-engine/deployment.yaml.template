@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lcm-engine
+  namespace: lcm-engine
+spec:
+  selector:
+    matchLabels:
+      app: lcm-engine
+  template:
+    metadata:
+      labels:
+        app: lcm-engine
+    spec:
+      imagePullSecrets:
+        - name: docker-registry
+      containers:
+        - name: lcm-engine
+          image: registry.gitlab.com/gaia-x/data-infrastructure-federation-services/orc/lcm-engine:v0.3.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: LCM_ENGINE_KUBE_CONFIG_CONTEXT
+              value: default
+            - name: LCM_ENGINE_DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: lcm-engine
+                  key: db_connection_string
+            - name: RUNTIME_ENVIRONMENT
+              value: local
+            - name: LCM_ENGINE_KUBE_CONFIG_PATH
+              value: "/root/.kube/config"
+          volumeMounts:
+            - mountPath: "/root/.kube/"
+              name: kube-config
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              httpHeaders:
+                - name: Accept
+                  value: application/json
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 1
+      volumes:
+        - name: kube-config
+          secret:
+            secretName: lcm-engine
+            items:
+              - key: kube-config
+                path: config

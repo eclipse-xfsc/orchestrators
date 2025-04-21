@@ -1,0 +1,559 @@
+definitions:
+  api.JSONResult:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      message:
+        type: string
+    type: object
+  api.JsonMarshalError:
+    type: object
+  api.NeedsInitError:
+    type: object
+  api.QueryError:
+    type: object
+  api.TerraformError:
+    type: object
+info:
+  contact: {}
+  description: A stateful Terraform API for orchestration environment (single user,
+    single project, single deployment)
+  license:
+    name: Mozilla Public License 2.0
+    url: https://www.mozilla.org/en-US/MPL/2.0/
+  title: Terraform LCM Service API
+paths:
+  /apply:
+    post:
+      description: Executes the actions proposed in a Terraform plan
+      parameters:
+      - description: If true updates the state to match remote systems
+        in: query
+        name: refresh_only
+        type: boolean
+      - description: An address of the resource to be marked as tainted (degraded
+          or damaged object)
+        in: query
+        name: replace
+        type: string
+      - collectionFormat: multi
+        description: Values for input variables, each var supplied as a single string
+          (e,g., 'foo=bar')
+        in: query
+        items:
+          type: string
+        name: vars
+        type: array
+      - collectionFormat: multi
+        description: Path tfvars file containing values for potentially many input
+          variables
+        in: query
+        items:
+          type: string
+        name: var_files
+        type: array
+      - description: Number of concurrent operation as Terraform walks the graph (default
+          is 10)
+        in: query
+        minimum: 1
+        name: parallelism
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Create or update infrastructure
+  /destroy:
+    post:
+      description: Destroys all remote objects managed by a particular api.Terraform
+        Configuration
+      parameters:
+      - collectionFormat: multi
+        description: Values for input variables, each var supplied as a single string
+          (e,g., 'foo=bar'
+        in: query
+        items:
+          type: string
+        name: vars
+        type: array
+      - collectionFormat: multi
+        description: Path tfvars file containing values for potentially many input
+          variables
+        in: query
+        items:
+          type: string
+        name: var_files
+        type: array
+      - description: Number of concurrent operation as Terraform walks the graph (default
+          is 10)
+        in: query
+        minimum: 1
+        name: parallelism
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Destroys previously-created infrastructure
+  /fmt:
+    post:
+      description: Rewrites Terraform Configuration files to a canonical format and
+        style
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Reformats your Configuration in the standard style
+  /force-unlock:
+    post:
+      description: Manually unlocks the state for the defined Configuration
+      parameters:
+      - description: A unique lock id
+        in: query
+        name: lock_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Releases a stuck lock on the current workspace
+  /get:
+    post:
+      description: Destroys all remote objects managed by a particular Terraform Configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.TerraformError'
+      summary: Installs or upgrades remote Terraform modules
+  /graph:
+    post:
+      description: Generates a visual representation of either a Configuration or
+        execution plan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Generates a Graphviz graph of the steps in an operation
+  /import:
+    post:
+      description: Imports existing resources into Terraform
+      parameters:
+      - description: A valid resource address at which resource will be imported
+        in: query
+        name: address
+        required: true
+        type: string
+      - description: An existing resource id that will be found by import
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Associates existing infrastructure with a Terraform resource
+  /init:
+    post:
+      description: Initializes a working directory containing Terraform Configuration
+        files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.TerraformError'
+      summary: Prepares your working directory for other commands
+  /output:
+    get:
+      description: Extracts the value of an output variable from the state file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows output values from your root module
+  /plan:
+    post:
+      description: Creates an execution plan, which lets you preview the changes for
+        your infrastructure
+      parameters:
+      - collectionFormat: multi
+        description: Values for input variables, each var supplied as a single string
+          (e,g., 'foo=bar'
+        in: query
+        items:
+          type: string
+        name: vars
+        type: array
+      - collectionFormat: multi
+        description: Path tfvars file containing values for potentially many input
+          variables
+        in: query
+        items:
+          type: string
+        name: var_files
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows changes required by the current Configuration
+  /providers/lock:
+    post:
+      description: Consults upstream registries to write provider dependency information
+        into the dependency lock file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Updates the dependency lock file to include a selected version for
+        each provider
+  /providers/schema:
+    get:
+      description: Prints detailed schemas for the providers used in the current Configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows the providers required for this Configuration
+  /show:
+    get:
+      description: Provides human-readable output from a state or plan file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows the current state or a saved plan
+  /state/mv:
+    post:
+      description: Retains an existing remote object but track it as a different resource
+        instance address
+      parameters:
+      - description: A valid resource address for source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: A valid resource address for destination
+        in: query
+        name: destination
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Moves the remote objects currently associated with the source to be
+        tracked instead by the destination
+  /state/rm:
+    delete:
+      description: Removes a binding to an existing remote object without first destroying
+        it
+      parameters:
+      - description: A valid resource address to be removed from record
+        in: query
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Forgets the resource, while it continues to exist in the remote system
+  /untaint:
+    delete:
+      description: Removes the taint marker from the object (will not modify remote
+        objects, will modify the state)
+      parameters:
+      - description: A resource address for particular resource instance which is
+          currently tainted
+        in: query
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Removes the tainted state from a resource instance
+  /validate:
+    post:
+      description: Validates the Configuration files in a directory
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Checks whether the Configuration is valid
+  /version:
+    get:
+      description: Displays the current version of Terraform and all installed plugins
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows the current Terraform version
+  /workspace/delete:
+    delete:
+      description: Deletes an existing Terraform workspace
+      parameters:
+      - description: A name of existing Terraform workspace to be deleted
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Deletes a workspace
+  /workspace/list:
+    get:
+      description: Lists all existing Terraform workspaces
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Lists Terraform workspaces
+  /workspace/new:
+    post:
+      description: Creates a new Terraform workspace with the given name
+      parameters:
+      - description: A name of (unexisting) Terraform workspace to be created
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Creates a new workspace
+  /workspace/select:
+    post:
+      description: Chooses a different Terraform workspace to use for further operations
+      parameters:
+      - description: A name of existing Terraform workspace
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.QueryError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.NeedsInitError'
+      summary: Select a workspace
+  /workspace/show:
+    get:
+      description: Outputs the current Terraform workspace
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.JsonMarshalError'
+      summary: Shows the name of the current workspace
+swagger: "2.0"

@@ -1,0 +1,78 @@
+---
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+imports:
+  - ../bucket_notification/bucket_notification.yaml
+
+node_types:
+  radon.nodes.aws.lambda:
+    derived_from: tosca.nodes.SoftwareComponent
+    properties:
+      region:
+        type: string
+        description: AWS region
+      function_name:
+        type: string
+        description: Name of the function
+      function_alias:
+        type: string
+        description: Alias for function
+      permission_id:
+        type: string
+        description: Id of permission
+      lambda_runtime:
+        type: string
+        description: Runtime for lambda
+      lambda_handler:
+        type: string
+        description: Handler for lambda function
+      lambda_timeout:
+        type: string
+        description: Function timeout in seconds
+      lambda_memory:
+        type: string
+        description: Function memory in MB
+      bucket_out_name:
+        type: string
+        description: The name of the bucket containing resized images
+    attributes:
+      function_arn:
+        type: string
+        description: AWS function arn
+    interfaces:
+      Standard:
+        type: tosca.interfaces.node.lifecycle.Standard
+        inputs:
+          function_name: { value: { get_property: [ SELF, function_name ] }, type: string }
+          zip_file: { value: { get_artifact: [ SELF, zip_file ] }, type: string }
+          region: { value: { get_property: [ SELF, region ] }, type: string }
+          aws_role: { value: { get_attribute: [ SELF, requires_role, role_arn ] }, type: string }
+          func_alias: { value: { get_property: [ SELF, function_alias ] }, type: string }
+          permission_id: { value: { get_property: [ SELF, permission_id ] }, type: string }
+          lambda_runtime: { value: { get_property: [ SELF, lambda_runtime ] }, type: string }
+          lambda_handler: { value: { get_property: [ SELF, lambda_handler ] }, type: string }
+          lambda_timeout: { value: { get_property: [ SELF, lambda_timeout ] }, type: string }
+          lambda_memory: { value: { get_property: [ SELF, lambda_memory ] }, type: string }
+          bucket_out_name: { value: { get_property: [ SELF, bucket_out_name ] }, type: string }
+        operations:
+          create: playbooks/create.yaml
+          delete: playbooks/delete.yaml
+    artifacts:
+      zip_file:
+        type: tosca.artifacts.File
+        file: image-resize-lambda-python39.zip
+    capabilities:
+      receives_notification:
+        type: tosca.capabilities.Compute
+        valid_source_types: [ radon.nodes.aws.bucket_notification ]
+    requirements:
+      - requires_prerequisites:
+          capability: tosca.capabilities.Node
+          relationship: tosca.relationships.DependsOn
+      - bucket:
+          capability: tosca.capabilities.Node
+          relationship: tosca.relationships.DependsOn
+      - requires_role:
+          capability: tosca.capabilities.Node
+          relationship: tosca.relationships.DependsOn
+...

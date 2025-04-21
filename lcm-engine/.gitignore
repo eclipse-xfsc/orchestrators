@@ -1,0 +1,10 @@
+**/__pycache__
+lcm_engine/kube-config
+examples/**
+k8s/lcm-engine/*secret.yaml
+k8s/lcm-engine/deployment.yaml
+k8s/lcm-engine/ingress-route-http.yaml
+k8s/lcm-engine/ingress-route-https.yaml
+k8s/lcm-engine-postgresql/*secret.yaml
+.env
+**/values.yaml

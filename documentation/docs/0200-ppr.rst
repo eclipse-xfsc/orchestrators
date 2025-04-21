@@ -1,0 +1,306 @@
+.. _PPR Introduction:
+
+************
+Introduction
+************
+
+**Participant Provider Role** (:term:`PPR`) used to obtain information and deployment instructions from
+:term:`Catalogues<Catalogue>` with Gaia-X :term:`Self-Descriptions<SD>`.
+
+:term:`PPR` comes as a (dockerized) API component.
+The source code is available in `orc/ppr`_ GitLab repository.
+The API is written in Python and licensed under `Apache License 2.0`_.
+
+Each :term:`Catalogue` in the :term:`PPR` is uniquely represented by it's UUID.
+Each :term:`SD` from the catalogue is signed and uniquely represented by it's SHA-256.
+
+.. _PPR Installation and running:
+
+************************
+Installation and running
+************************
+
+**PPR API** can be run in a Docker container or installed locally from source.
+
+.. tabs::
+    .. tab:: Docker
+
+        You can run PPR API in a Docker container using `ppr Docker image`_ as follows.
+
+        .. code-block:: console
+
+            $ docker run --name ppr-api -p 8080:8080 registry.gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr
+            $ curl localhost:8080/catalogues
+
+        .. code-block:: console
+
+            # build Docker container (it will take some time)
+            $ docker build -t ppr-api .
+            # run PPR REST API in a Docker container and
+            # navigate to localhost:8080/swagger or localhost:8080/redoc
+            $ docker run --name ppr-api -p 8080:8080 -e PPR_API_DEBUG_MODE="true" ppr-api
+
+    .. tab:: From source
+
+        You can also run PPR API from source GitLab repository.
+        First ensure that you have python 3 installed.
+        After that clone the repository and run (in debug mode) from source.
+
+        .. code-block:: console
+
+            $ git clone git@gitlab.com:gaia-x/data-infrastructure-federation-services/orc/ppr.git
+            $ cd ppr
+            $ python3 -m venv .venv && . .venv/bin/activate
+            (.venv) $ pip install --upgrade pip
+            (.venv) $ pip install -r requirements.txt
+            (.venv) $ PPR_API_DEBUG_MODE="true" uvicorn src.api:app
+            INFO:     Started server process [31705]
+            INFO:     Waiting for application startup.
+            INFO:     Application startup complete.
+            INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+When running the API you can use the following environment variables:
+
+- ``PPR_API_DEBUG_MODE`` - if `true` it will also serve the OpenAPI Specification
+- ``PPR_API_SWAGGER_URL`` - path to Swagger UI (default is "/swagger") if debug mode is on
+- ``PPR_API_REDOC_URL`` - path to Redoc (default is "/redoc") if debug mode is on
+
+.. hint::
+
+    Supplying env vars while running PPR in Docker container should be done like this:
+
+    .. code-block:: console
+
+        $ docker run --name ppr-api -p 8080:8080 -e PPR_API_DEBUG_MODE="true"
+          registry.gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr
+
+.. _PPR API reference:
+
+*************
+API reference
+*************
+
+PPR API exposes the following API endpoints:
+
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| REST API endpoint                                              | Description                                                           |
++================================================================+=======================================================================+
+| `GET /catalogues`                                              | Retrieve (and filter) catalogues of SDs                               |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| `GET /catalogues/{uuid}/self_descriptions`                     | Retrieve (and filter) SDs in the catalogue                            |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| `GET /catalogues/{uuid}/self_descriptions/{sha256}/json_ld`    | Get SD in JSON-LD format from the catalogue                           |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| `GET /catalogues/{uuid}/self_descriptions/{sha256}/iac`        | Get IaC (package and inputs) that implements SD from the catalogue    |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| `GET /catalogues/{uuid}/self_descriptions/{sha256}/iac/inputs` | Download inputs for IaC package that implements SD from the catalogue |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+| `GET /catalogues/{uuid}/self_descriptions/{sha256}/iac/url`    | Download IaC package that implements SD from the catalogue            |
++----------------------------------------------------------------+-----------------------------------------------------------------------+
+
+For a detailed API reference see `OpenAPI Specification for PPR API`_.
+
+.. _PPR Usage and examples:
+
+******************
+Usage and examples
+******************
+
+This part will show one PPR example workflow from the perspective of the user.
+
+.. note::
+
+    :term:`PPR` is currently just a concept implementation and is not connected to any real catalogues (but just one
+    `example catalogue`_ from `orc/ppr`_ GitLab repository.
+    In the future we plan to connect it to multiple :term:`SD` :term:`Catalogues<Catalogue>` and also to
+    the :term:`LCM Engine` that will retrieve the deployment instructions and mount them to created projects with
+    :term:`LCM Services<LCM Service>`.
+
+We will first run the PPR API using the `ppr Docker image`.
+
+.. code-block:: console
+
+    # run PPR REST API in a Docker container and navigate to localhost:8080/swagger or localhost:8080/redoc
+    $ docker run --name ppr-api -p 8080:8080 -e PPR_API_DEBUG_MODE="true" registry.gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr
+
+After that we can start working with the PPR API by sending HTTP requests to ``localhost:8080``.
+
+1. Let's look which :term:`Catalogues<Catalogue>` of :term:`SDs<SD>` can we search from.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues
+    [
+      {
+        "uuid": "a3f5b2456af448a995bfe01d3c8f1886",
+        "name": "example_catalogue",
+        "description": "An example catalogue for testing the PPR"
+      }
+    ]
+
+2. Then we will use the :term:`Catalogues's<Catalogue>` UUID to get a list of :term:`SDs<SD>` that are stored in the
+   chosen catalogue, but we will limit ourselves to the :term:`SDs<SD>` that are targeting OpenStack platform.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues/a3f5b2456af448a995bfe01d3c8f1886/self_descriptions?keyword=OpenStack
+    [
+      {
+        "sha256": "cfdd1ca4affc5e765c2444f6bfec5ed303c16746bca347ac2a787c4af412ea58",
+        "name": "nginx-openstack",
+        "description": "A example with OpenStack VM and nginx",
+        "iac": [
+          {
+            "type": "tosca",
+            "url": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768947/download",
+            "inputs": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768985/download"
+          },
+          {
+            "type": "terraform",
+            "url": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768879/download",
+            "inputs": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56769004/download"
+          }
+        ]
+      }
+    ]
+
+3. Now we know the UUID of the :term:`Catalogue` and the SHA-256 :term:`SD` and we can display the selected
+   :term:`SD` in the JSON-LD format.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues/a3f5b2456af448a995bfe01d3c8f1886/self_descriptions/cfdd1ca4affc5e765c2444f6bfec5ed303c16746bca347ac2a787c4af412ea58/json_ld
+    {
+      "@context": {
+        "gax-participant": "http://w3id.org/gaia-x/participant#",
+        "gax-service": "http://w3id.org/gaia-x/service#",
+        "dct": "http://purl.org/dc/terms/",
+        "sh": "http://www.w3.org/ns/shacl#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "gax-validation": "http://w3id.org/gaia-x/validation#",
+        "gax-node": "http://w3id.org/gaia-x/node#",
+        "vcard": "http://www.w3.org/2006/vcard/ns#",
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "gax-resource": "http://w3id.org/gaia-x/resource#",
+        "gax-core": "http://w3id.org/gaia-x/core#"
+      },
+      "@id": "ServiceOffering-dxhrm3k6tcizt4m9kx6e4d",
+      "@type": "gax-service:ServiceOffering",
+      "gax-service:hasServiceTitle": {
+        "@value": "nginx-openstack",
+        "@type": "xsd:string"
+      },
+      "dct:description": {
+        "@value": "A example with OpenStack VM and nginx",
+        "@type": "xsd:string"
+      },
+      "dcat:keyword": [
+        "nginx",
+        "OpenStack",
+        "VM",
+        "IaC",
+        "TOSCA",
+        "Terraform"
+      ],
+      "gax-service:maintainedBy": [
+        "XLAB",
+        "OpenStack"
+      ],
+      "gax-service:hasProvisionType": {
+        "@value": "true",
+        "@type": "xsd:boolean"
+      },
+      "gax-service:hostedOn": {
+        "@id": "OpenStack",
+        "@type": "gax-participant:Provider"
+      },
+      "gax-service:infrastructureAsCode": [
+        {
+          "@type": "iac:tosca",
+          "iac:url": {
+            "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768947/download",
+            "@type": "xsd:anyURI"
+          },
+          "iac:inputs": {
+            "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768985/download",
+            "@type": "xsd:anyURI"
+          }
+        },
+        {
+          "@type": "iac:terraform",
+          "iac:url": {
+            "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768879/download",
+            "@type": "xsd:anyURI"
+          },
+          "iac:inputs": {
+            "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56769004/download",
+            "@type": "xsd:anyURI"
+          }
+        }
+      ]
+    }
+
+
+4. After that let's look at IaC (package and inputs) that implements target :term:`SD` from the :term:`Catalogue` and
+   we will limit search to TOSCA implementations.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues/a3f5b2456af448a995bfe01d3c8f1886/self_descriptions/cfdd1ca4affc5e765c2444f6bfec5ed303c16746bca347ac2a787c4af412ea58/iac?iac_type=tosca
+    {
+      "url": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768947/download",
+      "inputs": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56768985/download"
+    }
+
+5. Now we can download the target TOSCA CSAR that implements the target :term:`SD`.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues/a3f5b2456af448a995bfe01d3c8f1886/self_descriptions/cfdd1ca4affc5e765c2444f6bfec5ed303c16746bca347ac2a787c4af412ea58/iac/url?iac_type=tosca --output nginx-openstack.csar
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100  9436  100  9436    0     0  29395      0 --:--:-- --:--:-- --:--:-- 29304
+
+    $ ls -l nginx-openstack.csar
+    -rw-rw-r-- 1 user user 9436 Aug 10 13:41 nginx-openstack.csar
+
+
+6. We can also save TOSCA inputs.
+
+.. code-block:: console
+
+    $ curl -XGET localhost:8080/catalogues/a3f5b2456af448a995bfe01d3c8f1886/self_descriptions/cfdd1ca4affc5e765c2444f6bfec5ed303c16746bca347ac2a787c4af412ea58/iac/inputs?iac_type=tosca --output inputs.yaml
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100   593  100   593    0     0   1629      0 --:--:-- --:--:-- --:--:--  1624
+
+    $ cat inputs.yaml
+    # This yaml file contains inputs for service.yaml.
+
+    vm_name: <openstack-vm-name>
+    vm_image: <openstack-vm-image-name>
+    vm_flavor: <openstack-vm-flavor-name>
+    vm_network: <openstack-vm-network-name>
+    vm_security_groups: <openstack-vm-security-groups>
+    vm_key_name: <openstack-vm-ssh-key-name>
+    ssh_user: <openstack-vm-ssh-user>
+    ssh_key_file: <path-to-local-ssh-private-key-file>
+
+    ### Example:
+    # vm_name: nginx-host
+    # vm_image: ubuntu-20.04.3
+    # vm_flavor: small
+    # vm_network: ostack2
+    # vm_security_groups: default
+    # vm_key_name: user1
+    # ssh_user: ubuntu
+    # ssh_key_file: /home/user1/.ssh/openstack.key
+
+That is it and after that you can start deploying the downloaded TOSCA CSAR (see how to do it with
+:ref:`TOSCA xOpera LCM Service`).
+
+.. _orc/ppr: https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr
+.. _Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
+.. _ppr Docker image: https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr/container_registry/3155973
+.. _example catalogue: https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr/-/tree/main/example_catalogue
+.. _OpenAPI Specification for PPR API: https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/ppr/-/blob/main/docs/openapi.yaml

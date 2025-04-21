@@ -1,0 +1,1896 @@
+openapi: 3.0.0
+info:
+  description: |
+    The Life-Cycle Management Engine API specification for the Gaia-X project.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  title: LCM Engine API
+  version: 2.3.0
+servers:
+- description: Testing LCM Engine server 1
+  url: https://demo.gxfs.xlab.si
+- description: Testing LCM Engine server 2
+  url: https://orchestrator.gxfs.xlab.si
+- description: Local development
+  url: http://localhost:8080
+tags:
+- description: User authentication and authorization
+  name: user
+- description: Secrets represent file credentials and environment variables
+  name: secret
+- description: "Workspaces are containers of projects, secrets and users"
+  name: workspace
+- description: Projects represent LCM Services
+  name: project
+- description: "Application status, info, health"
+  name: status
+paths:
+  /auth/logout:
+    post:
+      operationId: auth_logout
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationStatus'
+          description: Authentication status -- always unauthenticated
+      summary: Log out of the application
+      tags:
+      - user
+      x-openapi-router-controller: lcm_engine.controllers.user_controller
+  /auth/status:
+    get:
+      operationId: auth_status
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationStatus'
+          description: Authentication status
+      summary: Get the authentication status
+      tags:
+      - user
+      x-openapi-router-controller: lcm_engine.controllers.user_controller
+  /health:
+    get:
+      operationId: health
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: Application is healthy
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: Application is unhealthy
+      summary: Get application health
+      tags:
+      - status
+      x-openapi-router-controller: lcm_engine.controllers.status_controller
+  /secret:
+    get:
+      operationId: get_secrets
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Secret'
+                type: array
+          description: A list of secrets
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+      summary: List available secrets
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+    post:
+      operationId: create_secret
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/SecretBody'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+          description: The created secret
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+      summary: Create a new secret
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+  /secret/{secretId}:
+    delete:
+      operationId: delete_secret
+      parameters:
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Secret deleted
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Delete a secret
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+    get:
+      operationId: describe_secret
+      parameters:
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+          description: A secret
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Describe a secret
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+    patch:
+      operationId: update_secret
+      parameters:
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/SecretBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+          description: The updated secret
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Update a secret
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+    put:
+      operationId: replace_secret
+      parameters:
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/SecretBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+          description: The updated secret
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Replace a secret
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+  /workspace:
+    get:
+      operationId: get_workspaces
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Workspace'
+                type: array
+          description: A list of workspaces
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+      summary: List available workspaces
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+    post:
+      operationId: create_workspace
+      parameters:
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/WorkspaceBody'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: The created Workspace
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+      summary: Create a new workspace
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+  /workspace/{workspaceId}:
+    delete:
+      operationId: delete_workspace
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Workspace deleted
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Delete a workspace
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+    get:
+      operationId: describe_workspace
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: A workspace
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Describe a workspace
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+    patch:
+      operationId: update_workspace
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/WorkspaceBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: The updated workspace
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Update a workspace
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+    put:
+      operationId: replace_workspace
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/WorkspaceBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: The updated workspace
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Replace a workspace
+      tags:
+      - workspace
+      x-openapi-router-controller: lcm_engine.controllers.workspace_controller
+  /workspace/{workspaceId}/authorizations:
+    delete:
+      operationId: deauthorize_workspace_user
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/AuthorizationBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+          description: Success
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Deauthorize a user from the workspace
+      tags:
+      - user
+      x-openapi-router-controller: lcm_engine.controllers.user_controller
+    get:
+      operationId: get_workspace_authorizations
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/UserIdentifier'
+                type: array
+          description: A list of users authorized to this workspace
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+      summary: List users authorized to this workspace
+      tags:
+      - user
+      x-openapi-router-controller: lcm_engine.controllers.user_controller
+    put:
+      operationId: authorize_workspace_user
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/AuthorizationBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+          description: Success
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Authorize a new user to the workspace
+      tags:
+      - user
+      x-openapi-router-controller: lcm_engine.controllers.user_controller
+  /workspace/{workspaceId}/project:
+    get:
+      operationId: list_workspace_projects
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Project'
+                type: array
+          description: A list of projects
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: List projects in a workspace
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+    post:
+      description: "Secrets applied to the workspace the project is in are only applied\
+        \ on creation.\nTo modify secrets, create a new project.\n"
+      operationId: create_workspace_project
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/ProjectBody'
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityReference'
+          description: A reference to the created project
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Create a new project in the workspace (async)
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+  /workspace/{workspaceId}/project/{projectId}:
+    delete:
+      operationId: delete_workspace_project
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Project deleted
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Delete the project
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+    get:
+      operationId: describe_workspace_project
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: A project
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Describe the project
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+    patch:
+      operationId: update_workspace_project
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/ProjectBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: The updated project
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Update the project
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+    put:
+      operationId: replace_workspace_project
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/ProjectBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: The updated project
+        "400":
+          content:
+            application/json:
+              example:
+                msg: Request has incorrect schema or values
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Replace the project
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+    x-extension-marker: true
+  /workspace/{workspaceId}/project/{projectId}/creationStatus:
+    get:
+      operationId: describe_workspace_project_status
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityCreationStatus'
+          description: The project creation status
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Get the project creation status
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+  /workspace/{workspaceId}/project/{projectId}/debugPackage:
+    get:
+      operationId: create_workspace_project_debug_package
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/zip:
+              schema:
+                format: binary
+                type: string
+          description: A debug archive
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Get a package for local debugging
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+  /workspace/{workspaceId}/project/{projectId}/health:
+    get:
+      operationId: workspace_project_health
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: projectId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectHealth'
+          description: Project health
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Check the status of a project
+      tags:
+      - project
+      x-openapi-router-controller: lcm_engine.controllers.project_controller
+  /workspace/{workspaceId}/secret:
+    get:
+      operationId: list_workspace_secrets
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Secret'
+                type: array
+          description: A list of secrets
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: List secrets assigned to the workspace
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+  /workspace/{workspaceId}/secret/{secretId}:
+    delete:
+      operationId: remove_workspace_secret
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Secret deleted
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Remove the secret from the workspace
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+    put:
+      operationId: assign_secret
+      parameters:
+      - explode: false
+        in: path
+        name: workspaceId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: secretId
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: An authorization header
+        example: john.doe@example.com
+        explode: false
+        in: header
+        name: X-Forwarded-User
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: Secret assigned to workspace
+        "401":
+          content:
+            application/json:
+              example:
+                msg: User is not authorized to perform this action
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              example:
+                msg: Given resource was not found
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      summary: Assign a new secret to the workspace
+      tags:
+      - secret
+      x-openapi-router-controller: lcm_engine.controllers.secret_controller
+components:
+  parameters:
+    XForwardedUser:
+      description: An authorization header
+      example: john.doe@example.com
+      explode: false
+      in: header
+      name: X-Forwarded-User
+      required: true
+      schema:
+        type: string
+      style: simple
+  requestBodies:
+    SecretBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Secret'
+      description: Secret specification object
+      required: true
+    WorkspaceBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Workspace'
+      description: Workspace specification object
+      required: true
+    AuthorizationBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkspaceUserAuthorizationRequest'
+      description: Authorization specification object
+      required: true
+    ProjectBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Project'
+      description: Project specification object
+      required: true
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          example:
+            msg: Request has incorrect schema or values
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Bad request
+    Unauthorized:
+      content:
+        application/json:
+          example:
+            msg: User is not authorized to perform this action
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Unauthorized
+    NotFound:
+      content:
+        application/json:
+          example:
+            msg: Given resource was not found
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Not found
+  schemas:
+    HealthResponse:
+      additionalProperties: false
+      description: Application health component
+      example:
+        healthy: true
+        name: name
+        dependencies:
+        - null
+        - null
+      properties:
+        name:
+          title: name
+          type: string
+        healthy:
+          title: healthy
+          type: boolean
+        dependencies:
+          items:
+            $ref: '#/components/schemas/HealthResponse'
+          title: dependencies
+          type: array
+      required:
+      - healthy
+      - name
+      title: HealthResponse
+      type: object
+    AuthenticationStatus:
+      additionalProperties: false
+      description: Authentication status
+      example:
+        userIdentifier: john.doe@example.com
+        isLoggedIn: true
+      properties:
+        userIdentifier:
+          example: john.doe@example.com
+          title: userIdentifier
+          type: string
+        isLoggedIn:
+          example: true
+          title: isLoggedIn
+          type: boolean
+      required:
+      - isLoggedIn
+      - userIdentifier
+      title: AuthenticationStatus
+      type: object
+    EntityReference:
+      additionalProperties: false
+      description: A reference to another entity
+      example:
+        id: 0
+      properties:
+        id:
+          format: int64
+          title: id
+          type: integer
+      required:
+      - id
+      title: EntityReference
+      type: object
+    EntityCreationStatus:
+      additionalProperties: false
+      description: The status of an entity creation request
+      example:
+        finished: true
+        status: status
+      properties:
+        finished:
+          title: finished
+          type: boolean
+        status:
+          title: status
+          type: string
+      required:
+      - finished
+      - status
+      title: EntityCreationStatus
+      type: object
+    Secret:
+      additionalProperties: false
+      description: A secret describing environment variables and/or files with confidential
+        information
+      example:
+        file:
+          path: /root/.config/openstack.yaml
+          contentsHash: |
+            9b71d224bd62f3785d96d46ad3ea3d73
+            319bfbc2890caadae2dff72519673ca7
+            2323c3d99ba5c11d7c7acc6e14b8c5da
+            0c4663475c2e5c3adef46f73bcdec043
+          contents: contents
+        name: my secret
+        id: 6
+        workspaces:
+        - 3
+        - 6
+        - 8
+        env:
+          MY_ENV_ID: 123abc
+          MY_ENV_KEY: h4rd2br34km3
+      properties:
+        id:
+          example: 6
+          format: int64
+          readOnly: true
+          title: id
+          type: integer
+        name:
+          example: my secret
+          title: name
+          type: string
+        workspaces:
+          example:
+          - 3
+          - 6
+          - 8
+          format: int64
+          items:
+            type: integer
+          readOnly: true
+          title: workspaces
+          type: array
+        file:
+          $ref: '#/components/schemas/Secret_file'
+        env:
+          additionalProperties:
+            minProperties: 1
+            nullable: true
+            type: string
+          example:
+            MY_ENV_ID: 123abc
+            MY_ENV_KEY: h4rd2br34km3
+          title: env
+          type: object
+      required:
+      - id
+      - name
+      - workspaces
+      title: Secret
+      type: object
+    Workspace:
+      additionalProperties: false
+      description: A workspace
+      example:
+        projects:
+        - 0
+        - 4
+        - 6
+        isOwner: false
+        name: my workspace
+        id: 5
+        secrets:
+        - 2
+        - 6
+        - 4
+      properties:
+        id:
+          example: 5
+          format: int64
+          readOnly: true
+          title: id
+          type: integer
+        name:
+          example: my workspace
+          title: name
+          type: string
+        secrets:
+          example:
+          - 2
+          - 6
+          - 4
+          format: int64
+          items:
+            type: integer
+          readOnly: true
+          title: secrets
+          type: array
+        projects:
+          example:
+          - 0
+          - 4
+          - 6
+          format: int64
+          items:
+            type: integer
+          readOnly: true
+          title: projects
+          type: array
+        isOwner:
+          example: false
+          readOnly: true
+          title: isOwner
+          type: boolean
+      required:
+      - id
+      - isOwner
+      - name
+      - projects
+      - secrets
+      title: Workspace
+      type: object
+    Project:
+      additionalProperties: false
+      description: A project
+      example:
+        workspace: 8
+        kind: si.xlab.tosca
+        name: my tosca lcm service
+        id: 2
+        csar: csar
+      properties:
+        id:
+          example: 2
+          format: int64
+          readOnly: true
+          title: id
+          type: integer
+        name:
+          example: my tosca lcm service
+          title: name
+          type: string
+        workspace:
+          example: 8
+          format: int64
+          readOnly: true
+          title: workspace
+          type: integer
+        csar:
+          description: Base64-encoded ZIP file of the CSAR. The service template must
+            be top-level
+          format: byte
+          title: csar
+          type: string
+          writeOnly: true
+        kind:
+          description: "Kind of a project, such as TOSCA or Terraform"
+          example: si.xlab.tosca
+          title: kind
+          type: string
+      required:
+      - csar
+      - id
+      - kind
+      - name
+      - workspace
+      title: Project
+      type: object
+    ProjectHealth:
+      additionalProperties: false
+      description: Health details of a project
+      example:
+        container: null
+        connectivity: null
+      properties:
+        container:
+          $ref: '#/components/schemas/ContainerHealth'
+        connectivity:
+          $ref: '#/components/schemas/ConnectivityHealth'
+      required:
+      - connectivity
+      - container
+      title: ProjectHealth
+      type: object
+    ContainerHealth:
+      enum:
+      - nonexistent
+      - stopped
+      - running
+      - unknown
+      title: ContainerHealth
+      type: string
+    ConnectivityHealth:
+      enum:
+      - none
+      - layer3
+      - layer5
+      title: ConnectivityHealth
+      type: string
+    Error:
+      additionalProperties: false
+      description: An error
+      properties:
+        msg:
+          title: msg
+          type: string
+      required:
+      - msg
+      title: Error
+      type: object
+    UserIdentifier:
+      description: A unique identifier for a user
+      example: john.doe@example.com
+      title: UserIdentifier
+      type: string
+    Empty:
+      additionalProperties: false
+      description: Nothing
+      maxItems: 0
+      type: object
+    WorkspaceUserAuthorizationRequest:
+      additionalProperties: false
+      description: A request for user de-authorization
+      example:
+        user: john.doe@example.com
+      properties:
+        user:
+          description: A unique identifier for a user
+          example: john.doe@example.com
+          title: UserIdentifier
+          type: string
+      required:
+      - user
+      title: WorkspaceUserAuthorizationRequest
+      type: object
+    Secret_file:
+      additionalProperties: false
+      example:
+        path: /root/.config/openstack.yaml
+        contentsHash: |
+          9b71d224bd62f3785d96d46ad3ea3d73
+          319bfbc2890caadae2dff72519673ca7
+          2323c3d99ba5c11d7c7acc6e14b8c5da
+          0c4663475c2e5c3adef46f73bcdec043
+        contents: contents
+      properties:
+        path:
+          example: /root/.config/openstack.yaml
+          title: path
+          type: string
+        contents:
+          description: Base64-encoded contents
+          format: byte
+          title: contents
+          type: string
+          writeOnly: true
+        contentsHash:
+          description: The SHA3-512 checksum of the contents encoded as a hexadecimal
+            string
+          example: |
+            9b71d224bd62f3785d96d46ad3ea3d73
+            319bfbc2890caadae2dff72519673ca7
+            2323c3d99ba5c11d7c7acc6e14b8c5da
+            0c4663475c2e5c3adef46f73bcdec043
+          readOnly: true
+          title: contentsHash
+          type: string
+      title: Secret_file
+      type: object

@@ -1,0 +1,815 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A stateful Terraform API for orchestration environment (single user, single project, single deployment)",
+        "title": "Terraform LCM Service API",
+        "contact": {},
+        "license": {
+            "name": "Mozilla Public License 2.0",
+            "url": "https://www.mozilla.org/en-US/MPL/2.0/"
+        }
+    },
+    "paths": {
+        "/apply": {
+            "post": {
+                "description": "Executes the actions proposed in a Terraform plan",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create or update infrastructure",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "If true updates the state to match remote systems",
+                        "name": "refresh_only",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "An address of the resource to be marked as tainted (degraded or damaged object)",
+                        "name": "replace",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Values for input variables, each var supplied as a single string (e,g., 'foo=bar')",
+                        "name": "vars",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Path tfvars file containing values for potentially many input variables",
+                        "name": "var_files",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Number of concurrent operation as Terraform walks the graph (default is 10)",
+                        "name": "parallelism",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/destroy": {
+            "post": {
+                "description": "Destroys all remote objects managed by a particular api.Terraform Configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Destroys previously-created infrastructure",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Values for input variables, each var supplied as a single string (e,g., 'foo=bar'",
+                        "name": "vars",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Path tfvars file containing values for potentially many input variables",
+                        "name": "var_files",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Number of concurrent operation as Terraform walks the graph (default is 10)",
+                        "name": "parallelism",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/fmt": {
+            "post": {
+                "description": "Rewrites Terraform Configuration files to a canonical format and style",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Reformats your Configuration in the standard style",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/force-unlock": {
+            "post": {
+                "description": "Manually unlocks the state for the defined Configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Releases a stuck lock on the current workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A unique lock id",
+                        "name": "lock_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/get": {
+            "post": {
+                "description": "Destroys all remote objects managed by a particular Terraform Configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Installs or upgrades remote Terraform modules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.TerraformError"
+                        }
+                    }
+                }
+            }
+        },
+        "/graph": {
+            "post": {
+                "description": "Generates a visual representation of either a Configuration or execution plan",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Generates a Graphviz graph of the steps in an operation",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/import": {
+            "post": {
+                "description": "Imports existing resources into Terraform",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Associates existing infrastructure with a Terraform resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A valid resource address at which resource will be imported",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "An existing resource id that will be found by import",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/init": {
+            "post": {
+                "description": "Initializes a working directory containing Terraform Configuration files",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Prepares your working directory for other commands",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.TerraformError"
+                        }
+                    }
+                }
+            }
+        },
+        "/output": {
+            "get": {
+                "description": "Extracts the value of an output variable from the state file",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows output values from your root module",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/plan": {
+            "post": {
+                "description": "Creates an execution plan, which lets you preview the changes for your infrastructure",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows changes required by the current Configuration",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Values for input variables, each var supplied as a single string (e,g., 'foo=bar'",
+                        "name": "vars",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Path tfvars file containing values for potentially many input variables",
+                        "name": "var_files",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/providers/lock": {
+            "post": {
+                "description": "Consults upstream registries to write provider dependency information into the dependency lock file",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Updates the dependency lock file to include a selected version for each provider",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/providers/schema": {
+            "get": {
+                "description": "Prints detailed schemas for the providers used in the current Configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows the providers required for this Configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/show": {
+            "get": {
+                "description": "Provides human-readable output from a state or plan file",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows the current state or a saved plan",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/state/mv": {
+            "post": {
+                "description": "Retains an existing remote object but track it as a different resource instance address",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Moves the remote objects currently associated with the source to be tracked instead by the destination",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A valid resource address for source",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "A valid resource address for destination",
+                        "name": "destination",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/state/rm": {
+            "delete": {
+                "description": "Removes a binding to an existing remote object without first destroying it",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Forgets the resource, while it continues to exist in the remote system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A valid resource address to be removed from record",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/untaint": {
+            "delete": {
+                "description": "Removes the taint marker from the object (will not modify remote objects, will modify the state)",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Removes the tainted state from a resource instance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A resource address for particular resource instance which is currently tainted",
+                        "name": "address",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/validate": {
+            "post": {
+                "description": "Validates the Configuration files in a directory",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Checks whether the Configuration is valid",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "description": "Displays the current version of Terraform and all installed plugins",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows the current Terraform version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/delete": {
+            "delete": {
+                "description": "Deletes an existing Terraform workspace",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Deletes a workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A name of existing Terraform workspace to be deleted",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/list": {
+            "get": {
+                "description": "Lists all existing Terraform workspaces",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Lists Terraform workspaces",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/new": {
+            "post": {
+                "description": "Creates a new Terraform workspace with the given name",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Creates a new workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A name of (unexisting) Terraform workspace to be created",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/select": {
+            "post": {
+                "description": "Chooses a different Terraform workspace to use for further operations",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Select a workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "A name of existing Terraform workspace",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.QueryError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.NeedsInitError"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/show": {
+            "get": {
+                "description": "Outputs the current Terraform workspace",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Shows the name of the current workspace",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.JsonMarshalError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.JSONResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.JsonMarshalError": {
+            "type": "object"
+        },
+        "api.NeedsInitError": {
+            "type": "object"
+        },
+        "api.QueryError": {
+            "type": "object"
+        },
+        "api.TerraformError": {
+            "type": "object"
+        }
+    }
+}

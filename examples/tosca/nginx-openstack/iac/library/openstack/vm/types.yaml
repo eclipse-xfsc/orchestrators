@@ -1,0 +1,54 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+node_types:
+  openstack.VM:
+    derived_from: tosca.nodes.Compute
+    properties:
+      name:
+        type: string
+        description: Name that should be given to the VM in OpenStack
+      image:
+        type: string
+        description: OpenStack image id (image names are not accepted)
+      flavor:
+        type: string
+        description: OpenStack flavor id (flavor names are not accepted)
+      network:
+        type: string
+        description: OpenStack network id (network names are not accepted)
+      security_groups:
+        type: string
+        description:
+          OpenStack names of the security groups to which the instance should be added (comma separated string)
+      key_name:
+        type: string
+        description: OpenStack SSH key name that should be placed on the VM
+      ssh_user:
+        type: string
+        description: The username that will be used to connect to the created VM
+      ssh_key_file:
+        type: string
+        description: Path to the local SSH private key file that will be used for the ssh connection to the VM
+    attributes:
+      id:
+        type: string
+        description: OpenStack id of the VM
+    interfaces:
+      Standard:
+        type: tosca.interfaces.node.lifecycle.Standard
+        operations:
+          create:
+            inputs:
+              vm_name: { value: { get_property: [ SELF, name ] }, type: string }
+              image: { value: { get_property: [ SELF, image ] }, type: string }
+              flavor: { value: { get_property: [ SELF, flavor ] }, type: string }
+              network: { value: { get_property: [ SELF, network ] }, type: string }
+              key_name: { value: { get_property: [ SELF, key_name ] }, type: string }
+              security_groups: { value: { get_property: [ SELF, security_groups ] }, type: string }
+              ssh_user: { value: { get_property: [ SELF, ssh_user ] }, type: string }
+              ssh_key_file: { value: { get_property: [ SELF, ssh_key_file ] }, type: string }
+            implementation: playbooks/create.yaml
+          delete:
+            inputs:
+              id: { value: { get_attribute: [ SELF, id ] }, type: string }
+            implementation: playbooks/delete.yaml

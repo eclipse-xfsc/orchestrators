@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 120
+max-doc-length = 120
+
+exclude = .venv/
+
+# flake8-import-order
+application-import-names = src
+application-package-names =
+import-order-style = pep8
+
+# E731: lambda expression assignment
+ignore = E731

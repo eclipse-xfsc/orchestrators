@@ -1,0 +1,195 @@
+# Functional Requirement LE-CONF-1
+# ================================
+
+
+# Description
+# -----------
+# The LCM Engine MUST be able to merge the default deployment parameters with the
+# parameters set by the PCR.
+
+
+# Acceptance Criteria
+# -------------------
+# The (default) inputs option should exist and the information could be updated by user
+# (PCR) or another service.
+
+
+# Acceptance Method
+# -----------------
+# A user can select arbitrary inputs (update values) for deployment of the template.
+
+
+# Acceptance Test Outline
+# -----------------------
+# LE-CONF-1-01: Create workspace LE-CONF-1
+# LE-CONF-1-02: Create TOSCA LCM Service project: hello-world
+# LE-CONF-1-03: Deploy project hello-world using TOSCA LCM Service
+# LE-CONF-1-04: For the hello-world project, apply new TOSCA template and inputs, and
+# calculate differences between the existing TOSCA template and inputs and the given ones.
+# LE-CONF-1-05: For the hello-world project, update TOSCA template and/or inputs.
+# LE-CONF-1-06: Undeploy hello-world using TOSCA LCM Service
+# LE-CONF-1-07: Delete hello-world TOSCA LCM Service project
+# LE-CONF-1-08: Create secrets for Nginx Web Page @ IONOS Terraform LCM Service
+# LE-CONF-1-11: Associate the secrets with workspace LE-CONF-1
+# LE-CONF-1-12: Create Terraform LCM Service project: Nginx Web Page @ IONOS
+# LE-CONF-1-13: Deploy Nginx Web Page @ IONOS using Terraform LCM Service
+# LE-CONF-1-13a: Prepare working directory
+# LE-CONF-1-13b: Execute the actions from a plan
+# LE-CONF-1-14: Update the variables and rexecute the actions from the plan.
+# LE-CONF-1-15: Update secrets by providing environment variables for accessing
+# LE-CONF-1-16: Destroy Nginx Web Page @ IONOS using Terraform LCM Service
+# LE-CONF-1-17: Delete Terraform LCM Service (used for Nginx Web Page @ IONOS)
+# LE-CONF-1-18: Remove secret Terraform IONOS credentials from workspace LE-CONF-1
+# LE-CONF-1-19: Delete secret Terraform IONOS credentials
+# LE-CONF-1-20: Delete workspace LE-CONF-1
+
+
+# Acceptance Test
+# ---------------
+
+### LE-CONF-1-01: Create workspace LE-CONF-1
+POST {{lcm_host}}/workspace
+
+{
+    "name": "LE-CONF-1"
+}
+
+# Note: use the returned workspace ID in the following requests (assume ID 1)
+
+
+### LE-CONF-1-02: Create TOSCA LCM Service project: hello-world
+# This simple project does not require any secrets.
+POST {{lcm_host}}/workspace/1/project
+
+{
+    "name": "hello-world",
+    "kind": "si.xlab.lcm-service.tosca",
+    "csar": "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"
+}
+
+# Note: use the returned project ID in the following request (assume ID 1)
+
+
+### LE-CONF-1-03: Deploy project hello-world using TOSCA LCM Service
+# Here, we provide no inputs. The default values from the template (service.yaml) are used.
+POST {{lcm_host}}/workspace/1/project/1/deploy
+
+{
+  "inputs": {},
+  "service_template": "service.yaml",
+  "clean_state": true
+}
+
+
+### LE-CONF-1-04: For the hello-world project, apply new TOSCA template and inputs, and
+### calculate differences between the existing TOSCA template and inputs and the given ones.
+POST {{lcm_host}}/workspace/1/project/1/diff
+
+{
+  "serviceTemplate": "service.yaml",
+  "inputs": {
+    "marker": "diff-marker"
+  },
+  "templateOnly": true,
+  "newServiceTemplateContents": "dG9zY2FfZGVmaW5pdGlvbnNfdmVyc2lvbjogdG9zY2Ffc2ltcGxlX3lhbWxfMV8zCgptZXRhZGF0YToKICB0ZW1wbGF0ZV9uYW1lOiAiaGVsbG8td29ybGQiCiAgdGVtcGxhdGVfYXV0aG9yOiAiWExBQiIKICB0ZW1wbGF0ZV92ZXJzaW9uOiAiMS4wIgoKbm9kZV90eXBlczoKICBoZWxsb190eXBlOgogICAgZGVyaXZlZF9mcm9tOiB0b3NjYS5ub2Rlcy5Tb2Z0d2FyZUNvbXBvbmVudAogICAgaW50ZXJmYWNlczoKICAgICAgU3RhbmRhcmQ6CiAgICAgICAgaW5wdXRzOgogICAgICAgICAgbWFya2VyOgogICAgICAgICAgICB2YWx1ZTogeyBnZXRfaW5wdXQ6IG1hcmtlciB9CiAgICAgICAgICAgIHR5cGU6IHN0cmluZwogICAgICAgIG9wZXJhdGlvbnM6CiAgICAgICAgICBjcmVhdGU6IHBsYXlib29rcy9jcmVhdGUueWFtbAogICAgICAgICAgZGVsZXRlOiBwbGF5Ym9va3MvZGVsZXRlLnlhbWwKCnRvcG9sb2d5X3RlbXBsYXRlOgogIGlucHV0czoKICAgIG1hcmtlcjoKICAgICAgdHlwZTogc3RyaW5nCiAgICAgIGRlZmF1bHQ6IGRlZmF1bHQtbWFya2VyCgogIG5vZGVfdGVtcGxhdGVzOgogICAgbXktd29ya3N0YXRpb246CiAgICAgIHR5cGU6IHRvc2NhLm5vZGVzLkNvbXB1dGUKICAgICAgYXR0cmlidXRlczoKICAgICAgICBwcml2YXRlX2FkZHJlc3M6IGxvY2FsaG9zdAogICAgICAgIHB1YmxpY19hZGRyZXNzOiBsb2NhbGhvc3QKCiAgICBoZWxsbzoKICAgICAgdHlwZTogaGVsbG9fdHlwZQogICAgICByZXF1aXJlbWVudHM6CiAgICAgICAgLSBob3N0OiBteS13b3Jrc3RhdGlvbg=="
+}
+
+
+### LE-CONF-1-05: For the hello-world project, update TOSCA template and/or inputs.
+POST {{lcm_host}}/workspace/1/project/1/update
+
+{
+    "inputs": {
+        "marker": "update-marker"
+    },
+    "newServiceTemplateContents": "dG9zY2FfZGVmaW5pdGlvbnNfdmVyc2lvbjogdG9zY2Ffc2ltcGxlX3lhbWxfMV8zCgptZXRhZGF0YToKICB0ZW1wbGF0ZV9uYW1lOiAiaGVsbG8td29ybGQiCiAgdGVtcGxhdGVfYXV0aG9yOiAiWExBQiIKICB0ZW1wbGF0ZV92ZXJzaW9uOiAiMS4wIgoKbm9kZV90eXBlczoKICBoZWxsb190eXBlOgogICAgZGVyaXZlZF9mcm9tOiB0b3NjYS5ub2Rlcy5Tb2Z0d2FyZUNvbXBvbmVudAogICAgaW50ZXJmYWNlczoKICAgICAgU3RhbmRhcmQ6CiAgICAgICAgaW5wdXRzOgogICAgICAgICAgbWFya2VyOgogICAgICAgICAgICB2YWx1ZTogeyBnZXRfaW5wdXQ6IG1hcmtlciB9CiAgICAgICAgICAgIHR5cGU6IHN0cmluZwogICAgICAgIG9wZXJhdGlvbnM6CiAgICAgICAgICBjcmVhdGU6IHBsYXlib29rcy9jcmVhdGUueWFtbAogICAgICAgICAgZGVsZXRlOiBwbGF5Ym9va3MvZGVsZXRlLnlhbWwKCnRvcG9sb2d5X3RlbXBsYXRlOgogIGlucHV0czoKICAgIG1hcmtlcjoKICAgICAgdHlwZTogc3RyaW5nCiAgICAgIGRlZmF1bHQ6IGRlZmF1bHQtbWFya2VyCgogIG5vZGVfdGVtcGxhdGVzOgogICAgbXktd29ya3N0YXRpb246CiAgICAgIHR5cGU6IHRvc2NhLm5vZGVzLkNvbXB1dGUKICAgICAgYXR0cmlidXRlczoKICAgICAgICBwcml2YXRlX2FkZHJlc3M6IGxvY2FsaG9zdAogICAgICAgIHB1YmxpY19hZGRyZXNzOiBsb2NhbGhvc3QKCiAgICBoZWxsbzoKICAgICAgdHlwZTogaGVsbG9fdHlwZQogICAgICByZXF1aXJlbWVudHM6CiAgICAgICAgLSBob3N0OiBteS13b3Jrc3RhdGlvbg=="
+}
+
+
+### LE-CONF-1-06: Undeploy hello-world using TOSCA LCM Service
+POST {{lcm_host}}/workspace/1/project/1/undeploy
+
+
+### LE-CONF-1-07: Delete hello-world TOSCA LCM Service project
+DELETE {{lcm_host}}/workspace/1/project/1
+
+### LE-CONF-1-06: Create secrets for Nginx Web Page @ IONOS Terraform LCM Service
+POST {{lcm_host}}/secret
+
+{
+    "name": "Terraform IONOS credentials",
+    "file": {
+        "path": "/terraform-api/cred.tf",
+        "contents": "cHJvdmlkZXIgImlvbm9zY2xvdWQiIHsKICB1c2VybmFtZSAgICAgICAgICA9ICJub25hbWVAaW9ub3MuY29tIgogIHBhc3N3b3JkICAgICAgICAgID0gImszM3BtMzUzY3IzdCEiCn0K"
+    }
+}
+
+# Note: use the returned secret ID in the following request (assume ID 1)
+
+
+### LE-CONF-1-07: Associate the secrets with workspace LE-CONF-1
+PUT {{lcm_host}}/workspace/1/secret/1
+
+
+### LE-CONF-1-08: Create Terraform LCM Service project: Nginx Web Page @ IONOS
+POST {{lcm_host}}/workspace/1/project
+
+{
+    "name": "Nginx Web Page @ IONOS",
+    "kind": "si.xlab.lcm-service.terraform",
+    "csar": "UEsDBBQACAAIAKBeFlUAAAAAAAAAAAkHAAAHACAAbWFpbi50ZlVUDQAH/FEDY/xRA2Ph2mhjdXgLAAEE6QMAAATpAwAApVVLT9tAEL77Vwymh3KInagVh9aJVAkqDpWQeIgDQtbGO4lXrHfd3bWTUPW/d3bXCQFCeygSiT3zzeObVxwawxbaNPArATD4sxMGedmjsUIrmEI6m8IkG2fjdF/fGt0LTqBgBkBYbSupO04mUQRgdWcq9D6CehT0+TM0HXB7wU6zTzESwO/E//9OEoODo/TZtOTMsQqVQ5NCyquSKJR9k4bYijUIw990X0s6qSvmfLCg65nJthJScrSVEa0bkrlB6+BsFwjIC/QNrISrQa2FWq5Tn98xSKag0kph5ZCD0+BqBIuGiIFQ4U2JitwvhCKAVnuAw/TII/Giz3eJ7ej9oOCHMiM6u9RLwQf4wRJmuxJlgpNh280l5fsijjMdRrYrYoNEY7LFifYwCdHOqbiPRCQCSfCKhx+NCArxPev9Hv073b3mWfG0dTp5d2xizSmjv5XUT4WX/08JK03xD/gNcr9JrIFDcUlOWtGwJZYv59hrn+UEYj0Tks2FFG5TPmkVNu3b7c2lr6G1dfmIm7JlNBKDh3vvYmiF1y2ExAdq6DZey6xdacMPBeu17CibuNrHkHPs856zSXjfS5RSaJhQo5oP671rS2jMeByEXNjH0m1aDAYXZ2cR21F7Qk1JOmcWTz+jqjTHj0Vxfvk9OT7K50LlpKkT23ENrHXQtWSAu/fREh2MNu+JhbKOSQlqKdQ6aqtarxSMruDD7fX51ZfwCTkVIF+tVpB31uS2ZgbzaOMQd9q8do3MheK4zvzjG/QbQFGMiAnMQv1UJ2VSHHFdhVJ4wCwpAo42YTlNUaVegIzTlxNO4uwCpdRwp43kR0UeZUmRD5i55htvMZlds6aVSLs6h5baSIgJKdrZnT8RNDFk50+Wo+GFrydF3novg3keM4lN84WPTydJPMr+lMU58Hfv5Qi/PGHZ8wGLW0Gdr6v2wGHxjwv6ZVlRc0pWOdH7aV4wafH1hG3HbBhkyiYOj2hf79v921uU7S5RRvj78cPD9lfmD1BLBwjNasrK9QIAAAkHAABQSwMEFAAIAAgAoF4WVQAAAAAAAAAARwAAAAkAIABvdXRwdXQudGZVVA0AB/xRA2P8UQNj4dpoY3V4CwABBOkDAAAE6QMAAMsvLSkoLVFQyiyIT0xJKUotLlZSqOZSAIKyxJzSVAVbhcz8vPzi5Jz80pT4zIKknPzkbL2C0qSczGQgVy+zoDjaIJarFgBQSwcIdU3Z2kYAAABHAAAAUEsDBBQACAAIAKBeFlUAAAAAAAAAACEFAAAJACAAUmVhZG1lLm1kVVQNAAf8UQNj/FEDY+HaaGN1eAsAAQTpAwAABOkDAABdVNtu2zAMffdXEMnDmqBx3gMUWLEWazEsKZYUxTAMiSzTthBZ8kQpl78fpdz7Jlvk4eHhofp9eHPo8F9QpDzSJMsWDULn7EaV6MAglgTeQoEgralUHRyWsFW+iUEdh0j+gcYroYmjKusQlAcpTMwJhGWeZb9tSH8IPXjGR7NRzpqW82AjnBKFRgLOhZfF4g0KQUqCCBzKwFJ4ZQ0zw11nnYfX2XQ2X77Pn39NH38+P/RqocRu5BlFf+VAS7m0be82+u1xPv+Y/Xp66O1tcMtOEG2tK5cN997LspmD/ZEiM+Z+12g+1b+HEkk6VXD7f2La37vG+44m43HNaoQiVh2n+iOpbSjHVK5Hte0nsNEt2OBzN4vZj+fpQy/FMp9+Hx6hwi0Yy0MBaw5h8C0CgzKVE+RdkJ6nwVBzdBt0lPhbo/dpWg6FxxhMPEkQUAovJFNAl0Oc8eUbFHEYh1CHUlUsfY22dqJr+KjtgfId1hPolTj2O90b3EMR/FmzRmwQ2qC96vQ1cIKN8ybR4hkpzz5YikNyg3J9cFMM+/7+ytpbne62Sms2DKabK7LCsP/OAFoxAOujDmxi/LHjVDcJc5/Omomil3lUtw8HyY6eZgmnNnk9Wj06YOWwZemXuEO5yuGdlKlZoDTYkTJcTbWiRthiEiD66dJotEnnoXK2TT8zRnTL2AJUCjUvxKJhyVsUJmYJH2FKa7545iCRiDeCh3jic1xGIGqWa9yzeX1z14WCWwf+HuTZzCDYCpB15J5WidrZ4yvgtVpdJ69gOGwD+eEwGuUIz6UaG+om6QNPVoa4nWlg/Cagc4LXs2WaVxeTz5vgsFZszH3uTwm5suPTa0I365HOh6Nmp5IfMzYNUvkXu42dH+2RFBLRTOSF1lhOLi9KWtdr69ymqausaJMYKqS0wXgmX8rywp0/8vPzcaI0+A9QSwcIueTxacECAAAhBQAAUEsDBBQACAAIAKBeFlUAAAAAAAAAAJwAAAARACAAdGVycmFmb3JtLnRmc3RhdGVVVA0AB/xRA2P8UQNj4tpoY3V4CwABBOkDAAAE6QMAAEWMQQ7CIBRE95yCsJZGClK/VzHGQP01JLU0H3DT9O6WduFy3ryZhXEuvkgpxEncuDnVnJHIDZE+z38jVNM2Vux9Qgpu3KA6/DFM6N5YLfQa9AW91GfbSd+BkeB6kENr8QoKjHr54ySWPJecttGy7oAwxUI9VnR/sJX9AFBLBwil4sXtewAAAJwAAABQSwMEFAAIAAgAoF4WVQAAAAAAAAAAtgEAAAwAIAB2YXJpYWJsZXMudGZVVA0AB/xRA2P8UQNj4tpoY3V4CwABBOkDAAAE6QMAAG2Qu2rDQBBF+/2KYd1aj9gqTCBlcGFwlcaVGK3Gyib7EPuQZUz+PYsDDrLUDudw750BncRGEXCDmjjcGEBLZ4wqwFs6dtKM2af1gbMfxoYHrazAIK35MyZOS0UYFYepIKwjP6c3U8qhXmDKapewf0pq7KheLBybaEJ83ZR5WT1V7mOjpKi/6Vqfpbqrq4lb2D4Ug67vo/PE5UnhbM7oNF1ko8Ime1ApagXGBoie2jUINOCoVygInoJnQ3r0/mJdu/DLwzZ8fO32LxVu37vD9UgkTynrF1BLBwi90Yeu1QAAALYBAABQSwECFAMUAAgACACgXhZVzWrKyvUCAAAJBwAABwAgAAAAAAAAAAAAtIEAAAAAbWFpbi50ZlVUDQAH/FEDY/xRA2Ph2mhjdXgLAAEE6QMAAATpAwAAUEsBAhQDFAAIAAgAoF4WVXVN2dpGAAAARwAAAAkAIAAAAAAAAAAAALSBSgMAAG91dHB1dC50ZlVUDQAH/FEDY/xRA2Ph2mhjdXgLAAEE6QMAAATpAwAAUEsBAhQDFAAIAAgAoF4WVbnk8WnBAgAAIQUAAAkAIAAAAAAAAAAAALSB5wMAAFJlYWRtZS5tZFVUDQAH/FEDY/xRA2Ph2mhjdXgLAAEE6QMAAATpAwAAUEsBAhQDFAAIAAgAoF4WVaXixe17AAAAnAAAABEAIAAAAAAAAAAAALSB/wYAAHRlcnJhZm9ybS50ZnN0YXRlVVQNAAf8UQNj/FEDY+LaaGN1eAsAAQTpAwAABOkDAABQSwECFAMUAAgACACgXhZVvdGHrtUAAAC2AQAADAAgAAAAAAAAAAAAtIHZBwAAdmFyaWFibGVzLnRmVVQNAAf8UQNj/FEDY+LaaGN1eAsAAQTpAwAABOkDAABQSwUGAAAAAAUABQC8AQAACAkAAAAA"
+}
+
+# Note: use the returned project ID in the following requests (assume ID 2)
+
+
+### LE-CONF-1-09: Deploy Nginx Web Page @ IONOS using Terraform LCM Service
+
+### LE-CONF-1-09a: Prepare working directory
+POST {{lcm_host}}/workspace/1/project/2/init
+
+
+### LE-CONF-1-09b: Execute the actions from a plan
+# If the plan does not exist, it automatically creates one first
+POST {{lcm_host}}/workspace/1/project/2/apply
+
+
+### LE-CONF-1-10: Update the variables and rexecute the actions from the plan.
+POST {{lcm_host}}/workspace/1/project/2/apply
+
+{
+    "vars": ["foo=bar"]
+}
+
+
+### LE-CONF-1-11: Update secrets by providing environment variables for accessing
+### IONOS Cloud.
+PATCH {{lcm_host}}/secret/1
+
+{
+    "name": "Terraform IONOS credentials",
+    "env": {
+        "IONOS_USERNAME": "username",
+        "IONOS_PASSWORD": "password"
+    }
+}
+
+
+### LE-CONF-1-16: Destroy Nginx Web Page @ IONOS using Terraform LCM Service
+POST {{lcm_host}}/workspace/1/project/2/destroy
+
+
+### LE-CONF-1-17: Delete Terraform LCM Service (used for Nginx Web Page @ IONOS)
+DELETE {{lcm_host}}/workspace/1/project/2
+
+
+### LE-CONF-1-18: Remove secret Terraform IONOS credentials from workspace LE-CONF-1
+DELETE {{lcm_host}}/workspace/1/secret/1
+
+
+### LE-CONF-1-19: Delete secret Terraform IONOS credentials
+DELETE {{lcm_host}}/secret/1
+
+
+### LE-CONF-1-20: Delete workspace LE-CONF-1
+DELETE {{lcm_host}}/workspace/1

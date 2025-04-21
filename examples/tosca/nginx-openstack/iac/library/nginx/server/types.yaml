@@ -1,0 +1,50 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+imports:
+  - ../site/types.yaml
+
+node_types:
+  nginx.Server:
+    derived_from: tosca.nodes.SoftwareComponent
+    attributes:
+      site_config_dir:
+        type: string
+        description: Location of nginx site configs
+    properties:
+      ssh_user:
+        type: string
+        description: The username that will be used to connect to the created VM
+      ssh_key_file:
+        type: string
+        description: Path to the local SSH private key file that will be used for the ssh connection to the VM
+    capabilities:
+      host:
+        type: tosca.capabilities.Compute
+        valid_source_types: [nginx.Site]
+    interfaces:
+      Standard:
+        type: tosca.interfaces.node.lifecycle.Standard
+        inputs:
+          ssh_user: { value: { get_property: [ SELF, ssh_user ] }, type: string }
+          ssh_key_file: { value: { get_property: [ SELF, ssh_key_file ] }, type: string }
+        operations:
+          create:
+            implementation:
+              primary: playbooks/install.yaml
+          delete:
+            implementation:
+              primary: playbooks/uninstall.yaml
+
+relationship_types:
+  my.relationships.NginxSiteHosting:
+    derived_from: tosca.relationships.HostedOn
+    interfaces:
+      Configure:
+        operations:
+          post_configure_target:
+            inputs:
+              marker: { value: { get_attribute: [ TARGET, host, id ] }, type: string }
+              ssh_user: { value: { get_property: [ SOURCE, ssh_user ] }, type: string }
+              ssh_key_file: { value: { get_property: [ SOURCE, ssh_key_file ] }, type: string }
+            implementation:
+              primary: playbooks/reload.yaml

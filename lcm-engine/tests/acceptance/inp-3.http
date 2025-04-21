@@ -1,0 +1,87 @@
+# Functional Requirement INP-3
+# ============================
+
+
+# Description
+# -----------
+# Inputs MUST possess metadata allowing the input to be validated.
+
+
+# Acceptance Criteria
+# -------------------
+# Inputs are marked with their corresponding data types.
+
+
+# Acceptance Method
+# -----------------
+# A user retrieves a template with “default” inputs, overrides them with his values that
+# are of wrong data type and the deployment gets blocked.
+
+
+# Acceptance Test Outline
+# -----------------------
+# INP-3-01: Create workspace INP-3
+# INP-3-02: Create TOSCA LCM Service project: hello-world
+# INP-3-03: Deploy project hello-world using TOSCA LCM Service
+# INP-3-04: Validate inputs for the hello-world project.
+# INP-3-05: Undeploy hello-world using TOSCA LCM Service
+# INP-3-06: Delete hello-world TOSCA LCM Service project
+# INP-3-07: Delete workspace INP-3
+
+# Acceptance Test
+# ---------------
+
+### INP-3-01: Create workspace INP-3
+POST {{lcm_host}}/workspace
+
+{
+    "name": "INP-3"
+}
+
+# Note: use the returned workspace ID in the following requests (assume ID 1)
+
+
+### INP-3-02: Create TOSCA LCM Service project: hello-world
+# This simple project does not require any secrets.
+POST {{lcm_host}}/workspace/1/project
+
+{
+    "name": "hello-world",
+    "kind": "si.xlab.lcm-service.tosca",
+    "csar": "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"
+}
+
+# Note: use the returned project ID in the following request (assume ID 1)
+
+
+### INP-3-03: Deploy project hello-world using TOSCA LCM Service
+# Here, we provide no inputs. The default values from the template (service.yaml) are used.
+POST {{lcm_host}}/workspace/1/project/1/deploy
+
+{
+  "inputs": {},
+  "service_template": "service.yaml",
+  "clean_state": true
+}
+
+
+### INP-3-04: Validate inputs for the hello-world project.
+POST {{lcm_host}}/workspace/1/project/1/validate
+
+{
+  "serviceTemplate": "service.yaml",
+  "inputs": {
+    "marker": "diff-marker"
+  }
+}
+
+
+### INP-3-05: Undeploy hello-world using TOSCA LCM Service
+POST {{lcm_host}}/workspace/1/project/1/undeploy
+
+
+### INP-3-06: Delete hello-world TOSCA LCM Service project
+DELETE {{lcm_host}}/workspace/1/project/1
+
+### INP-3-07: Delete workspace INP-3
+DELETE {{lcm_host}}/workspace/1

@@ -1,0 +1,74 @@
+{
+  "@context": {
+    "gax-participant": "http://w3id.org/gaia-x/participant#",
+    "gax-service": "http://w3id.org/gaia-x/service#",
+    "dct": "http://purl.org/dc/terms/",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "gax-validation": "http://w3id.org/gaia-x/validation#",
+    "gax-node": "http://w3id.org/gaia-x/node#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "gax-resource": "http://w3id.org/gaia-x/resource#",
+    "gax-core": "http://w3id.org/gaia-x/core#"
+  },
+  "@id": "ServiceOffering-dxhrm3k6tcizt4m9kx6e4c",
+  "@type": "gax-service:ServiceOffering",
+  "gax-service:hasServiceTitle": {
+    "@value": "nginx-ionos",
+    "@type": "xsd:string"
+  },
+  "dct:description": {
+    "@value": "An IaC example with VM and nginx deployed on IONOS - Specs: (2 vCPU, 2GB RAM, 10GB SSD, zone Berlin)",
+    "@type": "xsd:string"
+  },
+  "dcat:keyword": [
+    "nginx",
+    "IONOS",
+    "IaC",
+    "TOSCA",
+    "Terraform"
+  ],
+  "gax-service:maintainedBy": [
+    "XLAB",
+    "IONOS"
+  ],
+  "gax-service:hasProvisionType": {
+    "@value": "true",
+    "@type": "xsd:boolean"
+  },
+  "gax-service:hostedOn": {
+    "@id": "IONOS",
+    "@type": "gax-participant:Provider"
+  },
+  "gax-service:providerDescription": {
+    "@value": "IONOS Cloud is a leading cloud infrastructure provider with a predictable environment and cloud services for digital transformation. The product portfolio extends everything that cloud ventures need for their uncompromising cloud performance. You can get modernized enterprise cloud computing engineered for simplicity and backed by an expert support process within a single solution. Scale up instantly and save costs by eliminating the need to maintain servers. IONOS Cloud provides flexibility for agile development by orchestrating container workloads and getting ready-to-use databases for each of your database applications with secure, affordable storage that integrates into your application scenarios.",
+    "@type": "xsd:string"
+  },
+  "gax-service:serviceSpecification": [
+    {
+      "@type": "VM",
+      "VM:vCPU": {
+        "@value": 2,
+        "@type": "xsd:integer"
+      },
+      "VM:RAM": {
+        "@value": "2GB",
+        "@type": "xsd:string"
+      },
+      "VM:SSD": {
+        "@value": "10GB",
+        "@type": "xsd:string"
+      }
+    }
+  ],
+  "gax-service:infrastructureAsCode": [
+    {
+      "@type": "iac:terraform",
+      "iac:url": {
+        "@value": "https://gitlab.com/gaia-x/data-infrastructure-federation-services/orc/examples/-/package_files/56959577/download",
+        "@type": "xsd:anyURI"
+      }
+    }
+  ]
+}

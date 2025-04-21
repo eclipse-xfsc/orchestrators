@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lcm-engine
+  namespace: lcm-engine
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`yourdomain.example.com`) && PathPrefix(`/`)
+    priority: 1
+    middlewares:
+    - name: basic-auth
+    services:
+    - name: lcm-engine
+      port: 8080
+  tls:
+    certResolver: letsencrypt

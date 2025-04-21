@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lcm-engine-http
+  namespace: lcm-engine
+spec:
+  entryPoints:
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`yourdomain.example.com`)
+    priority: 1
+    middlewares:
+    - name: redirect-scheme
+    services:
+    - name: lcm-engine
+      port: 8080

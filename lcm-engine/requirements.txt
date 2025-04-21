@@ -1,0 +1,7 @@
+connexion[swagger-ui]==2.14.2
+gevent==22.10.2
+SQLAlchemy==2.0.12
+psycopg2-binary==2.9.6
+Flask-SQLAlchemy==3.0.3
+kubernetes==26.1.0
+pythonping==1.1.4

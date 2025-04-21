@@ -1,0 +1,57 @@
+version: "3.8"
+
+networks:
+  lcm-engine:
+    driver: bridge
+
+volumes:
+  lcm-engine-db:
+
+services:
+  lcm-engine-db:
+    image: public.ecr.aws/bitnami/postgresql:15.2.0-debian-11-r5
+    pull_policy: missing
+    ports:
+      - "5432"
+    networks:
+      - lcm-engine
+    environment:
+      POSTGRESQL_DATABASE: ${lcm_db_database}
+      POSTGRESQL_USERNAME: ${lcm_db_username}
+      POSTGRESQL_PASSWORD: ${lcm_db_password}
+    volumes:
+      - lcm-engine-db:/bitnami/postgresql
+    healthcheck:
+      test: 
+        - CMD
+        - pg_isready
+        - -d
+        - ${lcm_db_database}
+        - -U
+        - ${lcm_db_username}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  lcm-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: build
+    ports:
+      - "8080:8080"
+    networks:
+      - lcm-engine
+    volumes:
+      - "${local_kube_config_path}:${container_kube_config_path}:ro"
+    environment:
+      LCM_ENGINE_DB_CONNECTION_STRING: "postgresql://${lcm_db_username}:${lcm_db_password}@lcm-engine-db:5432/${lcm_db_database}"
+      LCM_ENGINE_KUBE_CONFIG_CONTEXT: ${kube_config_context}
+      RUNTIME_ENVIRONMENT: ${runtime_environment}
+      LCM_ENGINE_KUBE_CONFIG_PATH: ${container_kube_config_path}
+      FLASK_DEBUG: false
+    depends_on:
+      lcm-engine-db:
+        condition: service_healthy
+    stop_signal: SIGINT

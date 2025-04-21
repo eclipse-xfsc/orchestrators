@@ -1,0 +1,58 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_name: "nginx-openstack"
+  template_author: "XLAB"
+  template_version: "1.0"
+
+imports:
+  - library/nginx/main.yaml
+  - library/openstack/main.yaml
+
+topology_template:
+  inputs:
+    vm_name:
+      type: string
+    vm_image:
+      type: string
+    vm_flavor:
+      type: string
+    vm_network:
+      type: string
+    vm_security_groups:
+      type: string
+    vm_key_name:
+      type: string
+    ssh_user:
+      type: string
+    ssh_key_file:
+      type: string
+
+  node_templates:
+    vm:
+      type: openstack.VM
+      properties:
+        name: { get_input: vm_name }
+        image: { get_input: vm_image }
+        flavor: { get_input: vm_flavor }
+        network: { get_input: vm_network }
+        security_groups: { get_input: vm_security_groups }
+        key_name: { get_input: vm_key_name }
+        ssh_user: { get_input: ssh_user }
+        ssh_key_file: { get_input: ssh_key_file }
+
+    nginx:
+      type: nginx.Server
+      properties:
+        ssh_user: { get_input: ssh_user }
+        ssh_key_file: { get_input: ssh_key_file }
+      requirements:
+        - host: vm
+
+    site:
+      type: nginx.Site
+      properties:
+        ssh_user: { get_input: ssh_user }
+        ssh_key_file: { get_input: ssh_key_file }
+      requirements:
+        - host: nginx

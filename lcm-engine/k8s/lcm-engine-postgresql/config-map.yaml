@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: lcm-engine-db
+  namespace: lcm-engine
+data:
+  database: lcm-engine

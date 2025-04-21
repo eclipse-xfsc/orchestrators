@@ -1,0 +1,17 @@
+**/__pycache__
+**/kube-config
+devops/**
+openapi_spec/**
+tests/**
+.gitignore
+.git/**
+Dockerfile
+dev-requirements.txt
+notes.txt
+README.md
+**/*.rest
+**/*.http
+examples
+*.sh
+.env
+.env.example
