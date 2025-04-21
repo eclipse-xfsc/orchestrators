@@ -189,7 +189,7 @@ func TestPlanRoute(t *testing.T) {
 			name:            "non-Terraform",
 			terraformFolder: "../tests/non-terraform",
 			expected: expected{
-				statusCode: 500,
+				statusCode:  500,
 				planChanged: TerraformPlanOutput{Changed: false},
 			},
 		},
@@ -197,7 +197,7 @@ func TestPlanRoute(t *testing.T) {
 			name:            "invalid",
 			terraformFolder: "../tests/invalid",
 			expected: expected{
-				statusCode: 500,
+				statusCode:  500,
 				planChanged: TerraformPlanOutput{Changed: false},
 			},
 		},

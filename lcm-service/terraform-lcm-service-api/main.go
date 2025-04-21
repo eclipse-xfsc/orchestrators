@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/eclipse-xfsc/orchestrators/terraform-lcm-service-api/api"
+	"github.com/eclipse-xfsc/orchestrators/terraform-lcm-service-api/docs"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/gaia-x/data-infrastructure-federation-services/orc/lcm-service/terraform-lcm-service-api/api"
-	"gitlab.com/gaia-x/data-infrastructure-federation-services/orc/lcm-service/terraform-lcm-service-api/docs"
 )
 
 // @title        Terraform LCM Service API

@@ -1,12 +1,11 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hashicorp/terraform-exec/tfexec"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -72,8 +71,9 @@ func (e JsonMarshalError) Error() string {
 
 // checkIfInitError will check if the error is of type tfexec.NoInitEr and if so will abort the context and return true
 func checkIfInitError(ctx *gin.Context, err error) bool {
-	var noInitErr *tfexec.ErrNoInit
-	if errors.Is(err, noInitErr) {
+	//https://github.com/hashicorp/terraform-exec/releases/tag/v0.18.0
+
+	if err != nil && strings.Contains(err.Error(), "has not been initialized") {
 		abortCall(ctx, http.StatusInternalServerError, NeedsInitError{err: err})
 		return true
 	}

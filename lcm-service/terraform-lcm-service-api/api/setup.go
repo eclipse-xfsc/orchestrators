@@ -3,6 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+
+	_ "github.com/eclipse-xfsc/orchestrators/terraform-lcm-service-api/docs"
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
@@ -11,10 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "gitlab.com/gaia-x/data-infrastructure-federation-services/orc/lcm-service/terraform-lcm-service-api/docs"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 // getEnvWithAlternativeStr retrieves the value of environment variable or  returns the provided string alternative
